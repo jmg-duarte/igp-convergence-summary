@@ -1,0 +1,72 @@
+\documentclass[a4paper, 11pt, UTF8]{article}
+
+\usepackage{cite}
+\usepackage{fullpage}
+
+\title{%
+Achieving sub-second IGP convergence in large IP networks \\
+	\large Article Summary}
+\author{José Duarte}
+\date{March 2019}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+In link-state protocols, each router maintains a database describing the Autonomous System's (AS) topology, which is referred to as the link-state database.
+Each router that participates in the AS has an identical database.
+Each piece in the database is a particular router's local state (e.g., the router's usable interfaces and reachable neighbors).
+The router distributes its state through the AS by flooding.
+
+Based on the link-state database, each router constructs a tree of shortest paths with itself as the root.
+The resulting shortest-path tree gives the route to each destination in the AS.
+Externally derived routing information will appear as leaves in the tree.
+
+For several equal-cost routes to a certain destination, traffic will be equally distributed among them.
+The cost of a route is described by a single dimensionless metric.\cite{J.Moy1998}
+
+\subsection{Open Shortest Path First}
+The Open Shortest Path First (OSPF) is a routing protocol for IP networks belonging to the group of Interior Gateway Protocols (IGPs), meaning that it will distribute routing information between routers belonging to a single AS.
+It is based on link-state (LS) or Shorttest Path First (SPF) technology.
+
+The OSPF protocol was designed expressly for the TCP/IP internet environment. 
+It includes explicit support for Classless Inter-Domain Routing (CIDR) and tagging of externally-derived routing information.
+
+All OSPF protocol exchanges are authenticated, meaning that only trusted routers can participated in the AS routing.
+
+Allowing sets of networks to be grouped together into an area, the topology of such area is hidden from the rest of the AS.
+This hiding mechanism also allows for a significant reduction in routing traffic.
+The routing within such area will be determined by the area's own topology, lending the area protection from bad routing data.
+
+OSPF uses the address from the IP packet header to route the packet through the network.
+IP packets are routed "as is", meaning no changes are made as they transit the AS.
+
+The OSPF is a dynamic routing protocol.
+It is able to quickly detect topological changes in the AS and calculated loop-free routes after a convergence period.
+This period is short and involves a minimum of routing traffic.\cite{J.Moy1998}
+
+\subsection{IS-IS}
+The Intermediate System to Intermediate System protocol partitions the network into "routing domains".
+Boundaries for such routing domains are defined by network management, setting some links to be "exterior links".
+Routing messages will not be sent on links marked as "exterior".
+
+IS-IS routing makes use of two-level hierarchical routing. 
+Each routing domain is partitioned into areas.
+\begin{description}
+  \item[$\bullet$ Level 1] - Routing within an area, level 1 routers will have a manually configured area address and refuse to become neighbors of other routers not belonging in the same area.
+  \item[$\bullet$ Level 2] - Routing towards areas, not concerned with their internal structure, they may also be a level 1 router in one area.
+\end{description}
+
+Level 1 routers know the topology of their area, however they do not know the identity of the routers or destinations outside their area.
+Level 1 routers must forward all their traffic for destinations outside of their area to a Level 2 router in their area.
+
+Correspondingly, level 2 routers know the level 2 topology and reachable addresses via the level 2 router.
+However, they do not need to know the topology of level 1 areas, except to the extent that a level 2 router may also be a level 1 router within a single area.
+Only level 2 routers can exchange data packets or routing information directly with external routers located outside of the routing domains.\cite{Callon1990}
+
+\
+
+\bibliography{convergence}
+\bibliographystyle{acm}
+
+\end{document}
