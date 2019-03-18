@@ -60,7 +60,7 @@ A distributed router architecture with hardware packet processors is presented a
 the problem given that the the CPU (RP) is able to dedicated all power to the control plane operation.
 Handling all routing operations and delegating to the linecards the write of the FIB updates to the hardware packet processors.
 
-The operating system (OS) running on the RP and the LineCard CPU's (LC) 
+The operating system (OS) running on the RP and the LineCard (LC) CPU's  
 implements a process scheduler with multiple priorities and preemption capabilities, 
 allowing for the IS-IS process to be scheduled immediately upon link failure.
 
@@ -80,6 +80,16 @@ Mechanisms present in SDH and SONET allow the LC hardware to detect failure in l
 When a failure is detected an high-priority interrupt is fired causing a POS routine to be executed,
 which enforces a user-defined hold-time delaying the communication of the failure to the central CPU and allowing for SDH/SONET protection to occur.
 If protection is not available, the failure is immediately signaled to the common CPU, updating the interface and scheduling IS-IS for reaction.
+
+The measurements confirm that in most cases failure detection takes less than $20ms$, under heavy load, 
+although rare, it is possible that another process was owning the CPU when the LC detected a failure,
+in the worst-case, the process has the same priority as IS-IS, 
+it was scheduled just before the failure and busy enough to consume the its full quantum.
+
+When link or path alarms are cleared, 
+timers are used to hold down the interface for an additional $10s$ before informing the routing protocols, 
+ensuring robustness against unstable situations.
+
 
 
 % \bibliography{convergence}
