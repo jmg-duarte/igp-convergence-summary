@@ -13,60 +13,76 @@ Achieving sub-second IGP convergence in large IP networks \\
 \maketitle
 
 \section{Introduction}
-In link-state protocols, each router maintains a database describing the Autonomous System's (AS) topology, which is referred to as the link-state database.
-Each router that participates in the AS has an identical database.
-Each piece in the database is a particular router's local state (e.g., the router's usable interfaces and reachable neighbors).
-The router distributes its state through the AS by flooding.
+The paper describes and analyses the various factors influencing convergence time in IGP networks,
+presenting a short description of the IS-IS protocol followed by a description of the convergence time.
+Showing that the main problems achieving sub-second convergence lie on the Routing Information Base (RIB) and
+Forwarding Information Base (FIB) update, 
+being able to reduce its influence by introducing prefix reduction during the design stages, 
+prefix prioritization during RIB/FIB updates and incremental updates to the FIB.
 
-Based on the link-state database, each router constructs a tree of shortest paths with itself as the root.
-The resulting shortest-path tree gives the route to each destination in the AS.
-Externally derived routing information will appear as leaves in the tree.
+A simulation model was used to study the convergence time in larger networks concluding that the sub-second convergence goal is achievable on ISP scale networks.
 
-For several equal-cost routes to a certain destination, traffic will be equally distributed among them.
-The cost of a route is described by a single dimensionless metric.\cite{J.Moy1998}
+\section{IS-IS Protocol}
+In the IS-IS protocol the router exchanges HELLO PDUs with its neighbors to determine its local topology, 
+afterwards it will flood a link-state packet (LSP) describing its local topology, 
+this packet will contain at least the identifier of its neighbors.
 
-\subsection{Open Shortest Path First}
-The Open Shortest Path First (OSPF) is a routing protocol for IP networks belonging to the group of Interior Gateway Protocols (IGPs), meaning that it will distribute routing information between routers belonging to a single AS.
-It is based on link-state (LS) or Shorttest Path First (SPF) technology.
+For broadcast networks, IS-IS routers will elect a router to "represent" the broadcast network, 
+the router will then generate a LSP describing this network and all attached routers.
 
-The OSPF protocol was designed expressly for the TCP/IP internet environment. 
-It includes explicit support for Classless Inter-Domain Routing (CIDR) and tagging of externally-derived routing information.
+Two situations may force the flooding of the LSP, 
+the information contained in the LSP changed, meaning that a new LSP must be generated and flooded, 
+or the LSP lifetime ended and it must be flooded again.
+In order to ensure reliability when flooding the network, each LSP is acknowledged on each link.
 
-All OSPF protocol exchanges are authenticated, meaning that only trusted routers can participated in the AS routing.
+When a router receives a LSP describing a topology change, it updates the Link State Database (LSDB), 
+this event triggers the update of the RIB
+which in turn triggers the update of the FIB.
+In order to update the RIB a new Shortest Path Tree (SPT) 
+must be computed based on the information contained in the LSDB.
 
-Allowing sets of networks to be grouped together into an area, the topology of such area is hidden from the rest of the AS.
-This hiding mechanism also allows for a significant reduction in routing traffic.
-The routing within such area will be determined by the area's own topology, lending the area protection from bad routing data.
-
-OSPF uses the address from the IP packet header to route the packet through the network.
-IP packets are routed "as is", meaning no changes are made as they transit the AS.
-
-The OSPF is a dynamic routing protocol.
-It is able to quickly detect topological changes in the AS and calculated loop-free routes after a convergence period.
-This period is short and involves a minimum of routing traffic.\cite{J.Moy1998}
-
-\subsection{IS-IS}
-The Intermediate System to Intermediate System protocol partitions the network into "routing domains".
-Boundaries for such routing domains are defined by network management, setting some links to be "exterior links".
-Routing messages will not be sent on links marked as "exterior".
-
-IS-IS routing makes use of two-level hierarchical routing. 
-Each routing domain is partitioned into areas.
+\section{Convergence Time Components}
+The convergence time can be characterized as $D + O + F + SPT + RIB + DD$ where:
 \begin{description}
-  \item[$\bullet$ Level 1] - Routing within an area, level 1 routers will have a manually configured area address and refuse to become neighbors of other routers not belonging in the same area.
-  \item[$\bullet$ Level 2] - Routing towards areas, not concerned with their internal structure, they may also be a level 1 router in one area.
+	\item[$\bullet$ $D$] - Link failure detection time
+	\item[$\bullet$ $O$] - Time to originate the LSP describing the new topology
+	\item[$\bullet$ $F$] - Complete flooding time from the node detecting the failure to the rerouting nodes that require a FIB update to bring the network to a consistent forwarding state
+	\item[$\bullet$ $SPT$] - Shortest Path Tree computation time
+	\item[$\bullet$ $RIB$] - Time taken to update the RIB and the FIB
+	\item[$\bullet$ $DD$] - Time to distribute the FIB updates to the linecards (in the case of a distributed router architecture)
 \end{description}
 
-Level 1 routers know the topology of their area, however they do not know the identity of the routers or destinations outside their area.
-Level 1 routers must forward all their traffic for destinations outside of their area to a Level 2 router in their area.
+\subsection{Router Architecture, Processor Performance, Operating System}
+One of the main bottlenecks on convergence time is the time taken updating the RIB and FIB components,
+it is clear that the faster the processor, the faster the convergence.
 
-Correspondingly, level 2 routers know the level 2 topology and reachable addresses via the level 2 router.
-However, they do not need to know the topology of level 1 areas, except to the extent that a level 2 router may also be a level 1 router within a single area.
-Only level 2 routers can exchange data packets or routing information directly with external routers located outside of the routing domains.\cite{Callon1990}
+A distributed router architecture with hardware packet processors is presented as a very well suited solution to
+the problem given that the the CPU (RP) is able to dedicated all power to the control plane operation.
+Handling all routing operations and delegating to the linecards the write of the FIB updates to the hardware packet processors.
 
-\
+The operating system (OS) running on the RP and the LineCard CPU's (LC) 
+implements a process scheduler with multiple priorities and preemption capabilities, 
+allowing for the IS-IS process to be scheduled immediately upon link failure.
 
-\bibliography{convergence}
-\bibliographystyle{acm}
+During convergence on a distributed platform, two processes share the CPU: 
+the IS-IS process to update the RIB and the FIB and the process distributing the FIB updates to the LC CPU's.
+
+% Not sure about this paragraph
+Given that the main bottleneck is present in the RIB update, 
+the IS-IS process will start by updating the prefixes with the higher priority, 
+in order to ensure the update of the LC's a quantum is used, 
+when the quantum is over the IPC process is scheduled, distributing the updates to the LC's, going back to the prefix update when the quantum is over, repeating the process.
+
+\subsection{Link Failure Detection}
+The use of Packet over SDH/SONET (POS) links is pointed as being one of the major enablers of sub-second IGP convergence given their ability to detect failures in tens of milliseconds.
+
+Mechanisms present in SDH and SONET allow the LC hardware to detect failure in less than 10 milliseconds.
+When a failure is detected an high-priority interrupt is fired causing a POS routine to be executed,
+which enforces a user-defined hold-time delaying the communication of the failure to the central CPU and allowing for SDH/SONET protection to occur.
+If protection is not available, the failure is immediately signaled to the common CPU, updating the interface and scheduling IS-IS for reaction.
+
+
+% \bibliography{convergence}
+% \bibliographystyle{acm}
 
 \end{document}
