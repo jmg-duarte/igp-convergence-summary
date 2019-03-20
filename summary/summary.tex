@@ -150,5 +150,35 @@ For a large ISP there are usually a few hundred important prefixes, the other on
 Introduction prefix prioritization solves the problem, the important prefixes will be updated first making
 the worst-case update duration scale based on the number of important prefixes instead of all prefixes.
 
+\section{Simulation}
+\subsection{Router model}
+The link failure component was modeled in a way that both routers will not detect the failure at the same time.
+For low delay links the lab measurements were used and for high delay links the time it takes to propagate the failure detection signal from location A to another random location. % ??
+
+The LSP generation timers were not modeled and the simulator allowed the router to flood its LSP immediately.
+
+The exponential backoff mechanism from section 3.5 was also modeled and it is configure with three parameters: $spf_initial_wait$, $spf_exponential_increment$ and $spf_maximum_wait$.
+
+The SPT computation time was modeled as a function of the number of nodes in the network with some jitter in order to take into account other processes that may be running on the router CPU.
+Only the full SPT computation was considered and not its incremental variants.
+
+To model the time required to update the FIB, 
+the number of prefixes whose FIB entries have changed and then multiplying the number of FIB updates with the time required to update one entry.
+The simulator models two kinds of FIB updates: $static$ and $incremental$.
+
+\subsection{Convergence time}
+When there are no failures within the network, the routing is consistent, however on a link failure, the routers using the failed link need to update their FIB, while the FIBs are being updated the routing may not be consistent anymore.
+
+The $instant\ of\ convergence$ is defined as the last moment at which the routing becomes and remains consistent.
+
+\section{Simulation Results}
+The tested networks were the GEANT network, a highly meshed network containing a lot of redundancy at its core, 
+and the backbone nodes of a world wide Tier-1 ISP, containing about 200 routers.
+
+For the GEANT network each POP is composed of a single router, for the Tier-1 ISP each POP is usually composed of two core routers, interconnected with redundant links, and several aggregation and access routers.
+
+\subsection{IGP convergence after link failures}
+
+\subsection{IGP convergence after router failures}
 
 \end{document}
