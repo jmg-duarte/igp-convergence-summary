@@ -121,6 +121,23 @@ given that for it to really occur, this worst-case must occur in the multiple pa
 
 It is concluded that the time to flood a single LSP is negligible compared to the sub-second convergence objective.
 
+\subsection{SPT Computation}
+The dynamic timers from the section 3.3 were also applied for the SPF calculations allowing for IGPs to be tuned such that when the network is stable, 
+the timers will be short, reacting to topology changes within a few milliseconds, 
+when the network is unstable SPF recalculation timers will increase in order to throttle the rate of response to network events.
+
+This ensures fast convergence when the network is stable and only incurs moderate overhead when the network is unstable.
+
+In IGP networks designed for fast convergence it is best practice to minimize the number of nodes in the topology.
+
+An important optimization to SPF is the incremental SPF (iSPF).
+iSPF analyses the impact of new LSPs on the previously computed SPF and minimizes the number of computations required updating only the necessary parts of the SPT.
+For failures in smaller subsets of the network, the bigger the iSPF computation gain when compared to a full SPF.
+
+Results show that the SPT computation can be executed in tens of milliseconds, without compromising network stability.
+
+
+
 % \bibliography{convergence}
 % \bibliographystyle{acm}
 
