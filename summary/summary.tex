@@ -1,4 +1,4 @@
-\documentclass[a4paper, 11pt, UTF8]{article}
+\documentclass[a4paper, 11pt]{article}
 
 \usepackage{cite}
 \usepackage{fullpage}
@@ -43,14 +43,12 @@ must be computed based on the information contained in the LSDB.
 
 \section{Convergence Time Components}
 The convergence time can be characterized as $D + O + F + SPT + RIB + DD$ where:
-\begin{description}
-	\item[$\bullet$ $D$] - Link failure detection time
-	\item[$\bullet$ $O$] - Time to originate the LSP describing the new topology
-	\item[$\bullet$ $F$] - Complete flooding time from the node detecting the failure to the rerouting nodes that require a FIB update to bring the network to a consistent forwarding state
-	\item[$\bullet$ $SPT$] - Shortest Path Tree computation time
-	\item[$\bullet$ $RIB$] - Time taken to update the RIB and the FIB
-	\item[$\bullet$ $DD$] - Time to distribute the FIB updates to the linecards (in the case of a distributed router architecture)
-\end{description}
+$D$ is the time to detect a link failure, 
+$O$ the time taken to originate a LSP describing the new topology,
+$F$ the complete flooding time from the node detecting the failure to the rerouting nodes that require a FIB update to bring the network to a consistent forwarding state, 
+$SPT$ the SPT computation time,
+$RIB$ the time taken to update the RIB and the FIB and 
+$DD$ which represents the time it takes to distribute the FIB updates to the linecards when using a distributed router architecture.
 
 \subsection{Router Architecture, Processor Performance, Operating System}
 One of the main bottlenecks on convergence time is the time taken updating the RIB and FIB components,
@@ -205,5 +203,21 @@ To evaluate convergence time in case of a router failure it is firstly considere
 
 The results show that for some router failures, the GEANT network can converge faster if the $spf\_initial\_wait$ parameter is set to $100ms$ than when set to $25ms$ given that for the latter some routers had to update their FIB twice in order to allow the routing to converge.
 
+However, for the Tier-1 SP, the results show that the sub-second goal is only achieved for $60\%$ of the router failures and convergence time can reach $1400ms$.
+The problem is that some routers will update their FIB before receiving the LSPs from all the failed router neighbors.
+
+In order to solve this problem, it must be assured that the routers will only start the SPT computation after receiving all the LSPs describing the failure, this is made possible using the fast-flooding mechanism, being possible to achieve sub-second results just using static FIB updates and fast-flooding. 
+Results also show that it is possible to improve on convergence time by replacing static FIB updates by incremental ones, reducing the time to update 10 prefixes on one router from $220ms$ (static updates) to $1ms$.
+
+Simulation results from figure 9 (in the paper) show that combining a low $spf\_initial\_wait$ and a low $spf\_exponential\_increment$ yields the best IGP convergence times.
+
+The simulations show that sub-second convergence can be met in large SP networks with a number of measures:
+Not applying the pacing timer to urgent LSPs, flooding urgent LSPs before recomputing their SPT and updating the FIB, thus it is recommended to use fast-flooding for fast convergence.
+The router should only modify the FIB entries affected by failures and prefix prioritization should be used to let the most important ones be updated first, an incremental algorithm should be used to update the SPT in order to reduce convergence time further and finally the configuration of the $spf\_initial\_wait$ on the network routers depends on expected failure types.
+
+\section{Conclusion}
+The paper presents an overview of the IS-IS protocol and points out why convergence times should be lowered. 
+Building up on several improvements over the field and technology itself.
+It presents the main factors of the convergence time and analyses each one and its impact presenting improvements if possible and solutions to problems that arise throughout, proving that sub-second convergence can be achieved for ISP-scale network without compromising on stability.
 
 \end{document}
