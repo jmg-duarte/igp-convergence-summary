@@ -136,9 +136,19 @@ For failures in smaller subsets of the network, the bigger the iSPF computation 
 
 Results show that the SPT computation can be executed in tens of milliseconds, without compromising network stability.
 
+\subsection{RIB and FIB update}
+The RIB/FIB update duration is linearly dependent on the number of modified prefixes.
+As expected, the update time depends primarily on processor performance as this is the main bottleneck in the convergence process.
+It is also shown that the time taken per RIB/FIB update is $\sim146\mu$s.
 
+In order to minimize the RIB/FIB update component three approaches can be taken: 
+implementing a network design rule to minimize the number of IGP prefixes, protocol and implementation optimization to allow the prioritization of some prefixes during the update and the optimization of the table management code.
+The paper discusses the first two.
 
-% \bibliography{convergence}
-% \bibliographystyle{acm}
+For a large ISP there are usually a few hundred important prefixes, the other only links interconnecting routers and since these prefixes are rarely used as destination addresses they mostly introduce overhead to the RIB/FIB updates.
+
+Introduction prefix prioritization solves the problem, the important prefixes will be updated first making
+the worst-case update duration scale based on the number of important prefixes instead of all prefixes.
+
 
 \end{document}
