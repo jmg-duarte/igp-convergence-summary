@@ -178,6 +178,22 @@ and the backbone nodes of a world wide Tier-1 ISP, containing about 200 routers.
 For the GEANT network each POP is composed of a single router, for the Tier-1 ISP each POP is usually composed of two core routers, interconnected with redundant links, and several aggregation and access routers.
 
 \subsection{IGP convergence after link failures}
+For GEANT the failure of all links was simulated, 
+while for the ISP the 50 links carrying the largest router to router paths were brought down.
+
+When a link fails, the two router attached to it detect the failure and originate a new LSP. 
+With the two-way connectivity check, 
+a link is considered as having failed as soon as one of the two LSPs has been received by a rerouting router.
+
+The results show that the sub-second convergence objective is easily met in the GEANT network.
+
+For a larger network such as the Tier-1 SP, as expected, the convergence time is also larger when comparing to the GEANT network.
+This difference can be explained by three factors.
+The Tier-1 SP link delays are larger, contains more prefixes than GEANT and the larger number of nodes present in the Tier-1 SP leads to a longer SPT computation.
+
+The impact of the link propagation delays is shown to be reduced due to the key factors of the convergence being SPF and FIB update times.
+
+Improvements upon the convergence time were obtained when reducing the number of advertised prefixes by each router. When advertising one prefix per router, convergence time is halved for nearly all the considered failures in the Tier-1 SP.
 
 \subsection{IGP convergence after router failures}
 
