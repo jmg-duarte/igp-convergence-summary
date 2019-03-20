@@ -91,14 +91,35 @@ timers are used to hold down the interface for an additional $10s$ before inform
 ensuring robustness against unstable situations.
 
 \subsection{LSP Origination}
-In order to achieve a rapid convergence while avoiding the generation of unnecessary LSP's generation timers with fixed values have been used,
+In order to achieve a rapid convergence while avoiding the generation of unnecessary LSP's, generation timers with fixed values have been used,
 these values have been set to limit the overhead during network instability, 
 however they impact the convergence time by introducing unnecessary wait time when the network is stable.
 
 Introducing dynamic timers to control LSP generation solves the problem.
 Adapting to the current network conditions, 
-with short generation times when the network is stable, allowing fast information exchange, and increasing exponentially when the network is unstable, introducing overhead to allow the network to settle down.
+with short generation times when the network is stable, allowing fast information exchange,
+and increasing exponentially when the network is unstable,
+introducing overhead to allow the network to settle down.
 
+\subsection{Flooding}
+The flooding time from the Failure node to the Rerouting nodes is the sum at each hop of the bufferization, serialization, propagation and the ISIS processing time.
+
+Serialization and bufferization is considered to be negligible and only the propagation delay impact on convergence is measured in the simulation.
+
+There are several optimizations that can be implemented for the fast-flooding process.
+
+For a single-threaded IS-IS implementation the LSP must be flooded before the RIB is updated, given the time the latter can take jeopardizing the network convergence when the local node is not the only rerouting node.
+
+The IS-IS specification suggests a $33ms$ pacing timer which is considered outdated, given the evolution in CPU and link speeds over 15 years, and damaging to the convergence time.
+Fast flooding is introduced as a solution to the pacing problems, bypassing pacing on LSPs describing a new link-state change event and applying pacing on Refresh and TE LSPs. 
+However, in the case of link flapping bursts of LSPs must be avoided, in order to do so,
+burst size is controlled and pacing is re-applied when a configurable certain amount of LSPs has been flooded over a configurable certain amount of time.
+
+The measurements for percentile-90, 95 and 100 were respectively $2ms$, $28ms$ and $52ms$.
+In practice, the worst-case scenario should be neglected due to the low probability of occurrence,
+given that for it to really occur, this worst-case must occur in the multiple parallel paths that exist in a meshed network.
+
+It is concluded that the time to flood a single LSP is negligible compared to the sub-second convergence objective.
 
 % \bibliography{convergence}
 % \bibliographystyle{acm}
