@@ -157,7 +157,7 @@ For low delay links the lab measurements were used and for high delay links the 
 
 The LSP generation timers were not modeled and the simulator allowed the router to flood its LSP immediately.
 
-The exponential backoff mechanism from section 3.5 was also modeled and it is configure with three parameters: $spf_initial_wait$, $spf_exponential_increment$ and $spf_maximum_wait$.
+The exponential backoff mechanism from section 3.5 was also modeled and it is configure with three parameters: $spf\_initial\_wait$, $spf\_exponential\_increment$ and $spf\_maximum\_wait$.
 
 The SPT computation time was modeled as a function of the number of nodes in the network with some jitter in order to take into account other processes that may be running on the router CPU.
 Only the full SPT computation was considered and not its incremental variants.
@@ -196,5 +196,14 @@ The impact of the link propagation delays is shown to be reduced due to the key 
 Improvements upon the convergence time were obtained when reducing the number of advertised prefixes by each router. When advertising one prefix per router, convergence time is halved for nearly all the considered failures in the Tier-1 SP.
 
 \subsection{IGP convergence after router failures}
+ISPs also need to face the correlated link and router failures, in order to model such failures it is considered all links attached to a router fail at the same time.
+For GEANT the failure of all routers was simulated and for the Tier-1 SP network the failure of the 23 routers connected to the 50 most loaded links of the network was simulated.
+
+For the failure of several links the first LSP received by a router is not always sufficient to describe the entire failure. In the case of a router failure the LSPs of all neighbors of the failed router might be needed to correctly update the FIB.
+
+To evaluate convergence time in case of a router failure it is firstly considered a configuration corresponding to IS-IS routers that were not optimized for fast convergence.
+
+The results show that for some router failures, the GEANT network can converge faster if the $spf\_initial\_wait$ parameter is set to $100ms$ than when set to $25ms$ given that for the latter some routers had to update their FIB twice in order to allow the routing to converge.
+
 
 \end{document}
